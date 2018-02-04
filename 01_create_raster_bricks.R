@@ -18,5 +18,8 @@ thegrid = setDT(expand.grid.df(as.data.frame(product_grid), data.frame(city_name
 #for each product
   #For each city
     #for each year
-    #Load dataset and qa
+       #Load dataset and qa
+       #apply qa
+       #aggregate the years together
+       #name the layers
 
