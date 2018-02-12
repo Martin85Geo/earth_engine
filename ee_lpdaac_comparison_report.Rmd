@@ -1,0 +1,99 @@
+---
+title: "Compare_EE_LPDAAC"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library('knitr')
+library('sf')
+library('raster')
+library('MODIS')
+library('data.table',quietly = T)
+knitr::opts_chunk$set(echo = F, include = F)
+
+#
+city = "Kinshasa"
+
+#to load the old stuff
+modis_base = 'MOD11A2'
+old_var = 'LST_Day'
+old_dir = file.path('/media/dan/react_data/post_proc/', paste0('output_',modis_base))
+old = readRDS(file.path(old_dir, paste0(old_var, 'city_bricks.rds')))[[city]]
+
+#load the new stuff
+new_dir = '/media/dan/ee_res'
+new_var = 'LST_Day_1km'
+new = raster::brick(file.path(new_dir, paste0(city,'_',modis_base, '_006_', new_var, '_2004_2016.tif')))
+
+#laod the data
+dat = fread('/media/dan/pr_data.csv')
+pts = dat[get('Name of City') == city, .(Long, Lat)]
+```
+
+## Compare Geospatial Parameters
+```{r geospatial_params, include = F}
+
+ras_params = function(x){
+  
+  ex = extent(x)
+  
+  data.table(rows = dim(x)[1],
+             cols = dim(x)[2],
+             slices = dim(x)[3],
+             xres = xres(x),
+             yres = yres(x),
+             crs = as.character(crs(x)),
+             xmin = ex[1],
+             xmax = ex[2],
+             ymin = ex[3],
+             ymax = ex[4])
+}
+
+raster_info = rbindlist(list(ras_params(new)[, method:= 'EE'], ras_params(old)[,method:= 'LPDAAC'] ))
+
+```
+
+```{r geospatial_table, include = T}
+
+kable(raster_info)
+
+```
+
+ 
+ 
+## Compare Imagery for Jan 1, 2004
+```{r comparejan1, include=T}
+par(mfrow=c(1,2))
+plot(old[[1]])
+plot(new[[1]] -273.15)
+cat('\n')
+```
+
+ 
+ 
+## Summaries from Jan 1, 2004
+```{r summs,include = T}
+
+a = old[[1]]
+names(a) = 'LPDAAC Method'
+b = new[[1]] - 273.15
+names(b) = 'EE Method'
+
+summary(a)
+
+cat('\n')
+
+summary(b)
+```
+
+ 
+ 
+## Compare at PR values
+```{r prvals, include = T}
+
+ex_old = raster::extract(old[[1]], pts)
+ex_new = raster::extract((new[[1]] - 273.15), pts)
+plot(ex_old,ex_new)
+abline(a =0, b = 1)
+
+```

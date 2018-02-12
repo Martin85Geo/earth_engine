@@ -2,24 +2,55 @@
 library('sf')
 library('data.table')
 library('googledrive')
+library('raster')
 
 code.dir = '/home/dan/Documents/code/earth_engine/'
-for(ddd in c('qa_functions.R')) source(paste0(code.dir,ddd))
+out.dir = '/media/dan/ee_res/'
+for(ddd in c('qa_functions.R', 'image_processing.R', '00_build_product_metadata.R')) source(paste0(code.dir,ddd))
 
-#Governing variables (after running 00)
-product_grid = lst
 city_shape = st_read("/home/dan/Documents/react_data/Cities_React/Boundaries.shp")
+listofcities = as.character(city_shape$Name)
 
 expand.grid.df <- function(...) Reduce(function(...) merge(..., by=NULL), list(...))
 
-thegrid = setDT(expand.grid.df(as.data.frame(product_grid), data.frame(city_name = unique(city_shape$Name))))
+#process lst
+lst[, id:=.I]
+for(i in lst[product %in% c('MOD11A2'),id]){
 
+  lapply(listofcities, function(x){
 
-#for each product
-  #For each city
-    #for each year
-       #Load dataset and qa
-       #apply qa
-       #aggregate the years together
-       #name the layers
+    lst_ras = stich_image(datafolder = '/media/dan/googledrive/gdrive/modis/',
+                                                           layerfolder = '/media/dan/googledrive/',
+                                                           metadata = lst[id == i,],
+                                                           good_qa_vals = build_lst_qa(),
+                                                           location_name = x)
 
+    rasname = paste0(x, '_',lst[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+    #project to latlong
+    ras = projectRaster(lst_ras, crs = as.character(st_crs(city_shape)[2]))
+    raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
+    return(invisible())
+  })
+
+}
+
+#DO vegi indices
+vis[,id:=.I]
+for(i in vis[product %in% c('MOD13A1'),id]){
+  
+  lapply(listofcities, function(x){
+    
+    vis_ras = stich_image(datafolder = '/media/dan/googledrive/gdrive/modis/',
+                          layerfolder = '/media/dan/googledrive/',
+                          metadata = vis[id == i,],
+                          good_qa_vals = build_lst_qa(),
+                          location_name = x)
+    
+    rasname = paste0(x, '_',vis[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+    #project to latlong
+    ras = projectRaster(vis_ras, crs = as.character(st_crs(city_shape)[2]))
+    raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
+    return(invisible())
+  })
+  
+}
