@@ -1,6 +1,10 @@
 ---
 title: "Compare_EE_LPDAAC"
-output: html_document
+params:
+  city: dar es salaam
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +16,8 @@ library('data.table',quietly = T)
 knitr::opts_chunk$set(echo = F, include = F)
 
 #
-city = "Kinshasa"
+city = params$city
+
 
 #to load the old stuff
 modis_base = 'MOD11A2'
@@ -20,14 +25,22 @@ old_var = 'LST_Day'
 old_dir = file.path('/media/dan/react_data/post_proc/', paste0('output_',modis_base))
 old = readRDS(file.path(old_dir, paste0(old_var, 'city_bricks.rds')))[[city]]
 
+
 #load the new stuff
 new_dir = '/media/dan/ee_res'
 new_var = 'LST_Day_1km'
 new = raster::brick(file.path(new_dir, paste0(city,'_',modis_base, '_006_', new_var, '_2004_2016.tif')))
 
 #laod the data
+pt_city = city
+if(city == 'dar es salaam'){
+  pt_city = 'Dar es salaam'
+} else if(city == "N Djamena"){
+  pt_city = "N'Djamena"
+}
+
 dat = fread('/media/dan/pr_data.csv')
-pts = dat[get('Name of City') == city, .(Long, Lat)]
+pts = dat[get('Name of City') == pt_city, .(Long, Lat)]
 ```
 
 ## Compare Geospatial Parameters
@@ -90,10 +103,11 @@ summary(b)
  
 ## Compare at PR values
 ```{r prvals, include = T}
-
-ex_old = raster::extract(old[[1]], pts)
-ex_new = raster::extract((new[[1]] - 273.15), pts)
-plot(ex_old,ex_new)
-abline(a =0, b = 1)
+if(nrow(pts)>0){
+  ex_old = raster::extract(old[[1]], pts)
+  ex_new = raster::extract((new[[1]] - 273.15), pts)
+  plot(ex_old,ex_new)
+  abline(a =0, b = 1)
+}
 
 ```
