@@ -26,6 +26,10 @@ for(i in lst[product %in% c('MOD11A2'),id]){
                                                            location_name = x)
 
     rasname = paste0(x, '_',lst[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+    
+    #native projection
+    raster::writeRaster(x = lst_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
+    
     #project to latlong
     ras = projectRaster(lst_ras, crs = as.character(st_crs(city_shape)[2]))
     raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
@@ -47,6 +51,11 @@ for(i in vis[product %in% c('MOD13A1'),id]){
                           location_name = x)
     
     rasname = paste0(x, '_',vis[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+    
+    #native projection
+    raster::writeRaster(x = vis_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
+    
+    
     #project to latlong
     ras = projectRaster(vis_ras, crs = as.character(st_crs(city_shape)[2]))
     raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )

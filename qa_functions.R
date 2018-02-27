@@ -72,3 +72,52 @@ build_vi_qa = function(){
   
 }
 
+#reflectance
+build_ref_qa = function(band){
+  bi = data.table(word_number = 1:10,
+                  word_start = c(0,2,6,10,14,18,22,26,30,31),
+                  word_end =   c(1,5,9,13,17,21,25,29,30,31))
+  qa = create_qa_mask(32, F, bi)
+  
+  #select for data quality
+  # highest quality or internal constant used in place of climate data
+  qa = rbindlist(list(
+    qa_pair(1,0),
+    qa_pair(band+1, c(0,12))
+  ))
+  
+  return(qa)
+  
+}
+qa_pair = function(word_num, good_vals, must = F){
+  return(expand.grid(word = paste0('word',word_num), value = good_vals, must = must))
+}
+
+get_qa_values = function(qa_layer, bit_interpreter, logic, nbits){
+  #find the possible qa combinations
+  rasvals = unique(as.vector(qa_layer[]))
+  
+  #convert the observed integers into bits
+  bits = lapply(rasvals, function(x) as.integer(intToBits(x)[1:nbits]))
+  bits = as.data.table(do.call(rbind, bits))
+  bits[, rasval:=rasvals]
+  
+  setnames(bits, c(paste0('V',0:(nbits-1)), 'rasval'))
+  
+  for(qqq in seq(nrow(bit_interpreter))){
+    
+    
+    start = bit_interpreter[qqq,word_start]
+    end = bit_interpreter[qqq,word_end]
+    i = bit_interpreter[qqq,word_number]
+    
+    #convert the word to its integer counterpart
+    bits[, paste0('word',i) := rowSums(.SD[, lapply(1:ncol(.SD), function(x) 2^(x-1) * .SD[[x]])]), .SDcols = paste0('V',start:end)] 
+  }
+  
+  #subset by the supplied logic. Not the best way to do this, but it'll do
+  bits = bits[eval(parse(text = logic)),]
+  
+  return(bits[,rasval])
+  
+}
