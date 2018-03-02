@@ -22,7 +22,7 @@ for(i in lst[product %in% c('MOD11A2'),id]){
     lst_ras = stich_image(datafolder = '/media/dan/googledrive/gdrive/modis/',
                                                            layerfolder = '/media/dan/googledrive/',
                                                            metadata = lst[id == i,],
-                                                           good_qa_vals = build_lst_qa(),
+                                                           qa_info = build_lst_qa(),
                                                            location_name = x)
 
     rasname = paste0(x, '_',lst[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
@@ -47,7 +47,7 @@ for(i in vis[product %in% c('MOD13A1'),id]){
     vis_ras = stich_image(datafolder = '/media/dan/googledrive/gdrive/modis/',
                           layerfolder = '/media/dan/googledrive/',
                           metadata = vis[id == i,],
-                          good_qa_vals = build_lst_qa(),
+                          qa_info = build_lst_qa(),
                           location_name = x)
     
     rasname = paste0(x, '_',vis[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
@@ -58,6 +58,32 @@ for(i in vis[product %in% c('MOD13A1'),id]){
     
     #project to latlong
     ras = projectRaster(vis_ras, crs = as.character(st_crs(city_shape)[2]))
+    raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
+    return(invisible())
+  })
+  
+}
+
+#DO reflectance
+reflect[,id:=.I]
+for(i in reflect[,id]){
+  
+  lapply(listofcities, function(x){
+    
+    ref_ras = stich_image(datafolder = '/media/dan/googledrive/gdrive/modis/',
+                          layerfolder = '/media/dan/googledrive/',
+                          metadata = reflect[id == i,],
+                          qa_info = build_ref_qa(i),
+                          location_name = x)
+    
+    rasname = paste0(x, '_',reflect[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+    
+    #native projection
+    raster::writeRaster(x = ref_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
+    
+    
+    #project to latlong
+    ras = projectRaster(ref_ras, crs = as.character(st_crs(city_shape)[2]))
     raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
     return(invisible())
   })

@@ -32,6 +32,8 @@ for(qqq in seq(nrow(bit_interpreter))){
 
 logic = "(word1 ==0 | (word1 == 1 & word2 %in% c(0,1,2,4,8,9,10))) & word7 %in% c(1,2)"
 
+
+
 blarg = cw[eval(parse(text = logic)),]
 
 qa = rbindlist(list(

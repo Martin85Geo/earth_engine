@@ -3,12 +3,12 @@
 #' @param datafolder file path. Location of the tifs from GEE
 #' @param layerfolder file_path. Location of the .txt files specifying layer names from GEE
 #' @param metadata data.table. Single row data table used to govern the processing of images
-#' @param good_qa_vals numeric vector. List of values in the QA layer denoting a good pixel
+#' @param qa_info numeric vector. List of values in the QA layer denoting a good pixel
 #' @param location_names character vector. List of ROIs/cities
 #' 
 #' @import data.table
 #' 
-stich_image = function(datafolder, layerfolder, metadata, good_qa_vals = NULL, location_name =""){
+stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, location_name =""){
   
   message(location_name)
   
@@ -27,8 +27,11 @@ stich_image = function(datafolder, layerfolder, metadata, good_qa_vals = NULL, l
   qras = file.path(datafolder,paste0(location_name, '_',metadata[,product],'_',metadata[,qa_layer],'_',yst:ynd,'.tif'))
   qras = raster::brick(lapply(qras, raster::brick))
   
+  #generate good_qa_values
+  good_qa_vals = get_qa_values(qras, bit_interpreter = qa_info[[1]], logic = qa_info[[2]], nbits = qa_info[[3]])
+  
   #mask for qa
-  allqavals = unique(qras)
+  allqavals = unique(as.vector(qras[]))
   navals = allqavals[!allqavals %in% good_qa_vals]
   
   #set NoData values for qa
@@ -46,7 +49,7 @@ stich_image = function(datafolder, layerfolder, metadata, good_qa_vals = NULL, l
   
   #sort out names
   namepath = file.path(layerfolder, paste0(metadata[,sensor],ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
-  nnn = read.delim(namepath, header = F)[[1]]
+  nnn = read.delim(namepath, header = F, stringsAsFactors = F)[[1]]
   
   names(dras) = paste0(location_name, '_', nnn)
   
