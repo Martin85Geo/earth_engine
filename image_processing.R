@@ -20,40 +20,60 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   #brick all the data images together
   yst = metadata[,year_start]
   ynd = metadata[,year_end]
-  dras = file.path(datafolder,paste0(location_name, '_',metadata[,product],'_',metadata[,variables],'_',yst:ynd,'.tif'))
-  dras = raster::brick(lapply(dras, raster::brick))
+  #/datafolder/product/location/file.ext
+  dras = file.path(datafolder,metadata[,product],location_name,
+                   paste0(location_name, '_',metadata[,product],'_',metadata[,variables],'_',yst:ynd,'.tif'))
   
+  #load the first raster in memory to 
+  template = brick(dras[1])[[1]]
+  
+  #load as a list of arrays
+  dras = lapply(dras, function(x) as.array(raster::brick(x)))
+  
+  #preserve the number of years and their dimensions
+  dras_meta = lapply(dras, dim)
+
   #brick all the qa layers together
-  qras = file.path(datafolder,paste0(location_name, '_',metadata[,product],'_',metadata[,qa_layer],'_',yst:ynd,'.tif'))
-  qras = raster::brick(lapply(qras, raster::brick))
+  qras = file.path(datafolder,metadata[,product],location_name,
+                   paste0(location_name, '_',metadata[,product],'_',metadata[,qa_layer],'_',yst:ynd,'.tif'))
+  
+  qras = lapply(qras, function(x) as.array(raster::brick(x)))
+  
+  #convert both dras and qras to vectors
+  dras = unlist(dras)
+  qras = unlist(qras)
+  
+  #get unique qa vals
+  allqavals = unique(as.vector(qras[]))
   
   #generate good_qa_values
-  good_qa_vals = get_qa_values(qras, bit_interpreter = qa_info[[1]], logic = qa_info[[2]], nbits = qa_info[[3]])
+  good_qa_vals = get_qa_values(allqavals, bit_interpreter = qa_info[[1]], logic = qa_info[[2]], nbits = qa_info[[3]])
   
-  #mask for qa
-  allqavals = unique(as.vector(qras[]))
-  navals = allqavals[!allqavals %in% good_qa_vals]
+  #Anything that did not pass QA muster gets set to N
+  dras[!qras %in% good_qa_vals] = NA
   
-  #set NoData values for qa
-  qras[qras==metadata[,qa_na]] = NA
+  #remove qras
+  rm(qras)
   
-  #make this next step faster
-  qras = raster::reclassify(qras,cbind(navals, NA))
-  qras[!is.na(qras)] = 1
-  
-  dras = dras * qras
-  #enforce pixel range and scaling
+  #enforce pixel bounds and scale
   dras[dras<metadata[,lower] | dras>metadata[,upper]] = NA
-  
   dras = dras * metadata[,scale]
+  
+  #convert back to raster brick
+  #probably not the most effective way, but whatever
+  #calculate the number of layers required
+  nlay = sum(sapply(dras_meta, '[[',3))
+  template = raster::brick(lapply(1:nlay, function(x) template * NA))
+  template[] = dras
+  rm(dras)
   
   #sort out names
   namepath = file.path(layerfolder, paste0(metadata[,sensor],ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
   nnn = read.delim(namepath, header = F, stringsAsFactors = F)[[1]]
   
-  names(dras) = paste0(location_name, '_', nnn)
+  names(template) = paste0(location_name, '_', nnn)
   
   #return brick
-  return(dras)
+  return(template)
   
 }

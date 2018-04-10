@@ -31,6 +31,17 @@ build_ref_qa = function(band){
   return(list(bi, logic, 32))
   
 }
+
+build_albedobrdf_qa = function(){
+  bi = data.table(word_number = 1,
+                  word_start = c(0),
+                  word_end =   c(0))
+  logic = paste0('word1 == 0')
+  
+  return(list(bi, logic, 1))
+  
+}
+
 qa_pair = function(word_num, good_vals){
   return(expand.grid(word = paste0('word',word_num), value = good_vals))
 }
