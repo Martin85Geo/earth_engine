@@ -93,18 +93,43 @@ rasterOptions(maxmemory = 2e9, chunksize = 2e8)
 #   
 # }
 
-albedo[,id:=.I]
-for(i in albedo[,id]){
+# albedo[,id:=.I]
+# for(i in albedo[,id]){
+#   
+#   lapply(listofcities, function(x){
+#     
+#     ref_ras = stich_image(datafolder = '/media/dan/earth_engine/',
+#                           layerfolder = '/media/dan/earth_engine/',
+#                           metadata = albedo[id == i,],
+#                           qa_info = build_albedobrdf_qa(),
+#                           location_name = x)
+#     
+#     rasname = paste0(x, '_',albedo[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+#     
+#     #native projection
+#     raster::writeRaster(x = ref_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
+#     
+#     
+#     #project to latlong
+#     ras = projectRaster(ref_ras, crs = as.character(st_crs(city_shape)[2]))
+#     raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
+#     return(invisible())
+#   })
+#   
+# }
+
+brdf[,id:=.I]
+for(i in brdf[,id]){
   
   lapply(listofcities, function(x){
     
     ref_ras = stich_image(datafolder = '/media/dan/earth_engine/',
                           layerfolder = '/media/dan/earth_engine/',
-                          metadata = albedo[id == i,],
-                          qa_info = build_albedobrdf_qa(),
+                          metadata = brdf[id == i,],
+                          qa_info = build_albedobrdf_qa(), #same qa as albedo
                           location_name = x)
     
-    rasname = paste0(x, '_',albedo[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+    rasname = paste0(x, '_',brdf[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
     
     #native projection
     raster::writeRaster(x = ref_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )

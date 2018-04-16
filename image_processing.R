@@ -44,7 +44,7 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   qras = unlist(qras)
   
   #get unique qa vals
-  allqavals = unique(as.vector(qras[]))
+  allqavals = unique(as.vector(qras))
   
   #generate good_qa_values
   good_qa_vals = get_qa_values(allqavals, bit_interpreter = qa_info[[1]], logic = qa_info[[2]], nbits = qa_info[[3]])
@@ -63,9 +63,10 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   #probably not the most effective way, but whatever
   #calculate the number of layers required
   nlay = sum(sapply(dras_meta, '[[',3))
-  template = raster::brick(lapply(1:nlay, function(x) template * NA))
-  template[] = dras
-  rm(dras)
+  
+  #remake dras into an array
+  dras = array(dras, dim = c(dim(template)[1:2], nlay))
+  dras = brick(dras, crs = crs(template))
   
   #sort out names
   namepath = file.path(layerfolder, paste0(metadata[,sensor],ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))

@@ -1,9 +1,11 @@
 library('googledrive')
 
-overwrite_files = F
+overwrite_files = T
 base_path = '/media/dan/earth_engine/'
 #compare google drive vs. on disk
 drive_folders = drive_ls(path = '~/earth_engine/')
+
+drive_folders = drive_folders[drive_folders$name=='MCD43A4',]
 
 #for each folder
 for(i in 1:nrow(drive_folders)){

@@ -66,3 +66,20 @@ albedo = setDT(expand.grid(product = c('MCD43A3'),
 #overwrite the QA layer names
 albedo[,qa_layer:= paste0('BRDF_Albedo_Band_Mandatory_Quality_',
                           c(paste0('Band',1:7),'vis','nir','shortwave'))]
+
+#brdf reflect
+brdf = setDT(expand.grid(product = c('MCD43A4'),
+                           version = '006',
+                           variables = c(paste0('Nadir_Reflectance_Band',1:7)),
+                           lower = 0,
+                           upper = 32766,
+                           qa_na = 2,
+                           scale = .001,
+                           qa_layer = 'QA',
+                           qa_bits = 1,
+                           sensor = 'MODIS',
+                           year_start = 2001,
+                           year_end = 2016, stringsAsFactors = F))
+#overwrite the QA layer names
+brdf[,qa_layer:= paste0('BRDF_Albedo_Band_Mandatory_Quality_',
+                          c(paste0('Band',1:7)))]
