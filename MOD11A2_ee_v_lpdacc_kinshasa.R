@@ -4,11 +4,11 @@ library('googledrive')
 library('sf')
 
 #find the scene associated with kinshasa
-city_shape = st_read("/home/dan/Documents/react_data/Cities_React/Boundaries.shp")
+city_shape = st_read("/media/dan/react_data/Cities_React/Boundaries.shp")
 city = city_shape[1,]
 
 #find which tiles it covers
-infile_modis_grid <- "/home/dan/Documents/react_data/modis_grid/modis_sinusoidal_grid_world.shp" #param11
+infile_modis_grid <- "/media/dan/react_data/modis_grid/modis_sinusoidal_grid_world.shp" #param11
 modis_grid<-st_read(infile_modis_grid)
 city_sin <- st_transform(city,st_crs(modis_grid)$proj4string)
 tiles = st_intersection(modis_grid, city_sin)
@@ -36,7 +36,7 @@ bbox = sp::spTransform(bbox, CRSobj = crs(modis))
 kin_modis = crop(modis, bbox)
 
 #download similiar/same data from earth engine
-kin_ee = raster(drive_download(drive_get('kin_bbox.tif'), overwrite = T)$local_path)
+kin_ee = brick('/media/dan/earth_engine/MOD11A2/Kinshasa/Kinshasa_MOD11A2_LST_Day_1km_2004.tif')[[1]]
 
 #apply scaling and set 0 to NA
 kin_ee[kin_ee==0] = NA
