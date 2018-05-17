@@ -34,10 +34,11 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   dras_meta = lapply(dras, dim)
 
   #brick all the qa layers together
-  qras = file.path(datafolder,metadata[,product],location_name,
-                   paste0(location_name, '_',metadata[,product],'_',metadata[,qa_layer],'_',yst:ynd,'.tif'))
+  qras = file.path(datafolder,metadata[,qa_product],location_name,
+                   paste0(location_name, '_',metadata[,qa_product],'_',metadata[,qa_layer],'_',yst:ynd,'.tif'))
   
   qras = lapply(qras, function(x) as.array(raster::brick(x)))
+  qras_meta = lapply(qras, dim)
   
   #convert both dras and qras to vectors
   dras = unlist(dras)
@@ -45,6 +46,8 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   
   #get unique qa vals
   allqavals = unique(as.vector(qras))
+  allqavals = allqavals[!is.na(allqavals) & allqavals != metadata$qa_na]
+  
   
   #generate good_qa_values
   good_qa_vals = get_qa_values(allqavals, bit_interpreter = qa_info[[1]], logic = qa_info[[2]], nbits = qa_info[[3]])
@@ -70,11 +73,11 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   
   #sort out names
   namepath = file.path(layerfolder, paste0(metadata[,sensor],ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
-  nnn = read.delim(namepath, header = F, stringsAsFactors = F)[[1]]
+  nnn = read.delim(namepath, header = F, stringsAsFactors = F)[,1]
   
-  names(template) = paste0(location_name, '_', nnn)
-  
+  new_names = paste0(location_name, '_', nnn)
+  names(dras) = new_names
   #return brick
-  return(template)
+  return(dras)
   
 }

@@ -32,7 +32,7 @@ build_ref_qa = function(band){
   
 }
 
-build_albedobrdf_qa = function(){
+build_albedo_qa = function(){
   bi = data.table(word_number = 1,
                   word_start = c(0),
                   word_end =   c(0))
@@ -42,6 +42,17 @@ build_albedobrdf_qa = function(){
   
 }
 
+build_brdf_qa = function(){
+  bi = data.table(word_number = 1,
+                  word_start = c(0),
+                  word_end =   c(2))
+  logic = paste0('word1 %in% 0:2')
+  
+  return(list(bi, logic, 1))
+  
+}
+
+
 qa_pair = function(word_num, good_vals){
   return(expand.grid(word = paste0('word',word_num), value = good_vals))
 }
@@ -49,6 +60,7 @@ qa_pair = function(word_num, good_vals){
 get_qa_values = function(qa_layer, bit_interpreter, logic, nbits){
   #find the possible qa combinations
   rasvals = unique(as.vector(qa_layer[]))
+  rasvals = rasvals[!is.na(rasvals)]
   
   #convert the observed integers into bits
   bits = lapply(rasvals, function(x) as.integer(intToBits(x)[1:nbits]))

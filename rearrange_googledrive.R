@@ -17,15 +17,15 @@ mods[,new_path:=paste0('earth_engine/',product_name,'/', city,'/')]
 
 
 #create the new folder structure
-# existing_folder = drive_ls('~/earth_engine', type = 'folder', recursive = T)
-# for(pn in unique(mods[,product_name])){
-#   
-#   drive_mkdir(paste0('~/earth_engine/',pn,'/'))
-#   
-#   for(cit in unique(mods[,city])){
-#     drive_mkdir(paste0('~/earth_engine/',pn,'/',cit,'/'))
-#   }
-# }
+existing_folder = drive_ls('~/earth_engine', type = 'folder', recursive = T)
+for(pn in unique(mods[,product_name])){
+
+  drive_mkdir(paste0('~/earth_engine/',pn,'/'))
+
+  for(cit in unique(mods[,city])){
+    drive_mkdir(paste0('~/earth_engine/',pn,'/',cit,'/'))
+  }
+}
 
 #Move the things
 iter = 1

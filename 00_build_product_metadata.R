@@ -68,15 +68,14 @@ albedo[,qa_layer:= paste0('BRDF_Albedo_Band_Mandatory_Quality_',
                           c(paste0('Band',1:7),'vis','nir','shortwave'))]
 
 #brdf reflect
-brdf = setDT(expand.grid(product = c('MCD43A4'),
+brdf = setDT(expand.grid(product = 'MCD43A4',
                            version = '006',
                            variables = c(paste0('Nadir_Reflectance_Band',1:7)),
                            lower = 0,
                            upper = 32766,
-                           qa_na = 2,
+                           qa_product = 'MCD43A4', #MCD43A2 is the full QA
                            scale = .001,
-                           qa_layer = 'QA',
-                           qa_bits = 1,
+                           qa_na = -9999,
                            sensor = 'MODIS',
                            year_start = 2001,
                            year_end = 2016, stringsAsFactors = F))
