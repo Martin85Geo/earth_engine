@@ -27,6 +27,7 @@ vis = setDT(expand.grid(product = c('MOD13A1','MYD13A1'),
                         sensor = 'MODIS',
                         year_start = 2001,
                         year_end = 2016, stringsAsFactors = F))
+vis[,qa_product:= product]
 
 #night time lights
 ntl = setDT(expand.grid(product = 'DMSPNTL',
