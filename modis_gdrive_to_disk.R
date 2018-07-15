@@ -16,6 +16,7 @@ last_modified = unlist(lapply(mods$drive_resource, function(x) x$modifiedTime))
 mods[, date_modified := last_modified]
 mods[, mody := max(date_modified), by = 'name']
 mods = mods[date_modified == mody,]
+mods[,name:=gsub('roi_1', 'roi1',x = name, fixed = T)]
 
 #create some useful variables
 mods[, c('city', 'product_name'):=tstrsplit(name,split = '_', fixed = T, keep = c(1,2))]
@@ -33,7 +34,7 @@ pos_paths = pos_paths[!dir.exists(pos_paths)]
 for(ppp in pos_paths) dir.create(ppp, recursive = T)
 
 #download files
-fff = mods[product_name == 'MCD43A4',]
+fff = mods[product_name %in% c('MYD11A1','MOD11A1'),]
 if(!overwrite){
   fff[!file.exists(paste0(fff$new_path,fff$name))]
 }

@@ -42,30 +42,30 @@ rasterOptions(maxmemory = 2e9, chunksize = 2e8)
 # }
 
 #DO vegi indices
-vis[,id:=.I]
-for(i in vis[product %in% c('MOD13A1'),id]){
-
-  lapply(listofcities, function(x){
-
-    vis_ras = stich_image(datafolder = '/media/dan/earth_engine/',
-                          layerfolder = '/media/dan/earth_engine/',
-                          metadata = vis[id == i,],
-                          qa_info = build_vi_qa(),
-                          location_name = x)
-
-    rasname = paste0(x, '_',vis[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
-
-    #native projection
-    raster::writeRaster(x = vis_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
-
-
-    #project to latlong
-    ras = projectRaster(vis_ras, crs = as.character(st_crs(city_shape)[2]))
-    raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
-    return(invisible())
-  })
-
-}
+# vis[,id:=.I]
+# for(i in vis[product %in% c('MOD13A1'),id]){
+# 
+#   lapply(listofcities, function(x){
+# 
+#     vis_ras = stich_image(datafolder = '/media/dan/earth_engine/',
+#                           layerfolder = '/media/dan/earth_engine/',
+#                           metadata = vis[id == i,],
+#                           qa_info = build_vi_qa(),
+#                           location_name = x)
+# 
+#     rasname = paste0(x, '_',vis[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
+# 
+#     #native projection
+#     raster::writeRaster(x = vis_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
+# 
+# 
+#     #project to latlong
+#     ras = projectRaster(vis_ras, crs = as.character(st_crs(city_shape)[2]))
+#     raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
+#     return(invisible())
+#   })
+# 
+# }
 
 #DO reflectance
 # reflect[,id:=.I]
@@ -119,6 +119,9 @@ for(i in vis[product %in% c('MOD13A1'),id]){
 # }
 
 brdf[,id:=.I]
+dir.create(file.path(out.dir, 'brdf/unproj/'), recursive = T)
+dir.create(file.path(out.dir, 'brdf/latlong/'), recursive = T)
+brdf = brdf[c(2,4,5),]
 print(nrow(brdf))
 for(i in brdf[,id]){
   print(paste(i, Sys.time()))
@@ -134,12 +137,12 @@ for(i in brdf[,id]){
     rasname = paste0(x, '_',brdf[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
     
     #native projection
-    raster::writeRaster(x = ref_ras,filename = file.path(out.dir, paste0('unproj_',rasname)), overwrite = T )
+    raster::writeRaster(x = ref_ras,filename = file.path(out.dir, 'brdf/unproj/',paste0('unproj_',rasname)), overwrite = T )
     
     
     #project to latlong
     ras = projectRaster(ref_ras, crs = as.character(st_crs(city_shape)[2]))
-    raster::writeRaster(x = ras,filename = file.path(out.dir, rasname), overwrite = T )
+    raster::writeRaster(x = ras,filename = file.path(out.dir,'brdf/latlong/', rasname), overwrite = T )
     return(invisible())
   },mc.cores = 4)
   
