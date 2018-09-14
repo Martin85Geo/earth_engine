@@ -69,7 +69,10 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   
   #remake dras into an array
   dras = array(dras, dim = c(dim(template)[1:2], nlay))
-  dras = brick(dras, crs = crs(template))
+  #template = template * NA
+  #template = brick(lapply(1:nlay, function(x) template))
+  
+  dras = brick(dras, xmn = xmin(template), xmx = xmax(template), ymn = ymin(template), ymx = ymax(template), crs = crs(template))
   
   #sort out names
   namepath = file.path(layerfolder, paste0(metadata[,sensor],ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
