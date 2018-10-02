@@ -48,7 +48,6 @@ stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, locati
   allqavals = unique(as.vector(qras))
   allqavals = allqavals[!is.na(allqavals) & allqavals != metadata$qa_na]
   
-  
   #generate good_qa_values
   good_qa_vals = get_qa_values(allqavals, bit_interpreter = qa_info[[1]], logic = qa_info[[2]], nbits = qa_info[[3]])
   

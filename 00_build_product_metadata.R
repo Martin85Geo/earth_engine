@@ -12,7 +12,9 @@ lst = setDT(expand.grid(product =c('MOD11A2','MYD11A2'),
                    qa_bits = 8,
                    year_start = 2001,
                    year_end = 2016, stringsAsFactors = F))
-lst[, qa_layer := paste0('QC_', tstrsplit(variables, "_")[[2]])]
+lst[ , qa_layer := paste0('QC_', tstrsplit(variables, "_")[[2]])]
+lst[ , qa_product := product]
+lst[ product == 'MYD11A2',year_start := 2002]
 
 #NDVI and EVI from MOD13A1 and MYD13A1
 vis = setDT(expand.grid(product = c('MOD13A1','MYD13A1'),
@@ -26,7 +28,9 @@ vis = setDT(expand.grid(product = c('MOD13A1','MYD13A1'),
                         qa_bits = 16,
                         sensor = 'MODIS',
                         year_start = 2001,
-                        year_end = 2016, stringsAsFactors = F))
+                        year_end = 2016,
+                        pixel_size = 500,
+                        stringsAsFactors = F))
 vis[,qa_product:= product]
 
 #night time lights

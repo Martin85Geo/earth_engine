@@ -4,12 +4,12 @@ library('data.table')
 overwrite = T
 
 #a list of all files in modis folder-- since I can't figure out how to get ee to save to sub folders
-modis_files = drive_ls(path = 'modis')
+productstodl = 'MYD11A2' #c('MOD11A2', 'MCD43A4')
 
 #reorganize files into the following path
 #earth_engine/product_name/city
-mods = modis_files
-setDT(mods)
+mods = rbindlist(lapply(productstodl, function(x) drive_ls(path = 'modis', pattern = x)))
+mods = unique(mods)
 
 #keep only the most recent version of the file
 last_modified = unlist(lapply(mods$drive_resource, function(x) x$modifiedTime))
@@ -34,9 +34,9 @@ pos_paths = pos_paths[!dir.exists(pos_paths)]
 for(ppp in pos_paths) dir.create(ppp, recursive = T)
 
 #download files
-fff = mods[product_name %in% c('MYD11A1','MOD11A1'),]
+fff = mods[product_name %in% productstodl,]
 if(!overwrite){
-  fff[!file.exists(paste0(fff$new_path,fff$name))]
+  fff = fff[!file.exists(paste0(fff$new_path,fff$name)),]
 }
 
 if(nrow(fff)>0){
