@@ -4,7 +4,7 @@ library('data.table')
 overwrite = T
 
 #a list of all files in modis folder-- since I can't figure out how to get ee to save to sub folders
-productstodl = 'MYD11A2' #c('MOD11A2', 'MCD43A4')
+productstodl = 'MCD12Q1' #c('MOD11A2', 'MCD43A4')
 
 #reorganize files into the following path
 #earth_engine/product_name/city

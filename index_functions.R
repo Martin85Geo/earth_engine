@@ -47,11 +47,11 @@ spacetime_aggregate_nd = function(band1, band2, fact = c(1,1,1), agg_fun = mean)
 #' @param force_in_memory logical. Read such that the raster package loads everything into memory
 #' 
 #' rasname = paste0(x, '_',brdf[id == i, paste(product,version,variables,year_start,year_end,sep='_')],'.tif')
-load_brdf_raster = function(datafolder, spectrum = c('red', 'nir','blue','green','swir1','swir2','swir3'), city, projected = T, force_in_memory = T){
+load_brdf_raster = function(datafolder, spectrum = c('red', 'nir','blue','green','nir2','swir1','swir2'), city, projected = T, force_in_memory = T){
   
   #create the spectrum to band mapping
   bands = 1:7
-  names(bands) = c('red', 'nir','blue','green','swir1','swir2','swir3')
+  names(bands) = c('red', 'nir','blue','green','nir2','swir1','swir2')
   
   band = bands[match.arg(spectrum)]
   
@@ -65,3 +65,4 @@ load_brdf_raster = function(datafolder, spectrum = c('red', 'nir','blue','green'
   
   return(bla)
 }
+
