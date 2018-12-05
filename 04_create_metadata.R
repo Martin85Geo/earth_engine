@@ -13,7 +13,8 @@ layerfolder = '/media/dan/earth_engine/'
 out.dir = '/media/dan/ee_processed/'
 dir.create(out.dir)
 
-for(ddd in c('qa_functions.R', 'image_processing.R', '00_build_product_metadata.R', 'index_functions.R', 'summarize_functions.R')) source(paste0(code.dir,ddd))
+for(ddd in c('qa_functions.R', 'image_processing.R', '00_build_product_metadata.R', 'index_functions.R', 'summarize_functions.R',
+             'metadata_functions.R')) source(paste0(code.dir,ddd))
 city_shape = st_read("/home/dan/Documents/react_data/Cities_React/study_areas.shp")
 listofcities = as.character(city_shape$Name)
 expand.grid.df <- function(...) Reduce(function(...) merge(..., by=NULL), list(...))
@@ -45,7 +46,8 @@ brdf_vars[, calc_time := T]
 viirs_vars = expand.grid(product = 'VCMCFG', version = '01', variables = 'avg_rad',
                                      year_start = 2012, year_end = 2016, sensor = 'VIIRS', prefix = 'VCMCFG', calc_time = F, stringsAsFactors = F)
 
-strm_vars 
+srtm_vars = expand.grid(product = 'srtm', variables = c('aspect', 'roughness', 'slope','TPI','TRI', 'elevation'), version = '01', year_start = 2000, year_end = 2000,
+                        sensor = 'srtm', prefix = 'srtm', stringsAsFactors = F)
 
 # 
 # setDT(dat)
@@ -54,55 +56,58 @@ strm_vars
 
 
 #create a master list of files
-rasfiles = rbindlist(list(lst_vars, vis_vars, brdf_bands, brdf_vars, viirs_vars))
-
-
-for(line in 1:nrow(dat)){
-  
-  metadata = dat[line,]
-  print(metadata)
-  
-  #load the dates
-  sss = metadata[, sensor ]
-  
-  if(sss == 'VIIRS'){
-    namepath = file.path(layerfolder, 'NOAA_VIIRS_DNB_MONTHLY_V1_VCMCFG.txt')
-  }else{
-    namepath = file.path(layerfolder, paste0(sss,ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
-    
-  }
-  
-  nnn = read.delim(namepath, header = F, stringsAsFactors = F)[,1]
-  
-  if(!all(grepl('_', nnn, fixed = T))){
-    nnn = paste(substr(nnn, 1,4), substr(nnn, 5,6), substr(nnn, 7,8), sep = '_')
-  }
-  
-  #convert to date paths
-  nnn = as.Date(nnn, '%Y_%m_%d')
-  
-  if(metadata[, calc_time]){
-    nnn = get_layer_date(nnn, metadata[,temporal_agg])
-  }
-  
-  
-  #classify into monthly
-  mth = month(nnn)
-  yr = year(nnn)
-  mth_yr = paste0(yr,'_',sprintf("%02d", mth))
-  synoptic = rep(1, length(mth))
-  
-  #load the raster
-  for(city in listofcities){
-    rasname = paste0(metadata[, paste(..city,product,version,variables,year_start,year_end,sep='_')],'.tif')
-    ras = readAll(brick(file.path(out.dir,metadata[,prefix], 'latlong', rasname)))
-    
-    #get the data on the observed/raw(ish) information
-    
-    for(sg in 1:nrow(summary_grid)){
-      newname = paste0(tools::file_path_sans_ext(basename(rasname)), '_', summary_grid[sg, time], '_',summary_grid[sg, funk], '.tif')
-      newpath = file.path(out.dir, '/summary/',metadata[,product], summary_grid[sg, time], summary_grid[sg, funk], newname)
-    }
-  
-  }
-}
+rasfiles = rbindlist(list(lst_vars, vis_vars, brdf_bands, brdf_vars, viirs_vars), fill = T)
+rasfiles[, rasname:= paste0(paste(..city,product,version,variables,year_start,year_end,sep='_'),'.tif')]
+rasfiles[, raspath := file.path(out.dir,prefix, 'latlong', rasname)]
+# 
+# 
+# 
+# for(line in 1:nrow(dat)){
+#   
+#   metadata = dat[line,]
+#   print(metadata)
+#   
+#   #load the dates
+#   sss = metadata[, sensor ]
+#   
+#   if(sss == 'VIIRS'){
+#     namepath = file.path(layerfolder, 'NOAA_VIIRS_DNB_MONTHLY_V1_VCMCFG.txt')
+#   }else{
+#     namepath = file.path(layerfolder, paste0(sss,ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
+#     
+#   }
+#   
+#   nnn = read.delim(namepath, header = F, stringsAsFactors = F)[,1]
+#   
+#   if(!all(grepl('_', nnn, fixed = T))){
+#     nnn = paste(substr(nnn, 1,4), substr(nnn, 5,6), substr(nnn, 7,8), sep = '_')
+#   }
+#   
+#   #convert to date paths
+#   nnn = as.Date(nnn, '%Y_%m_%d')
+#   
+#   if(metadata[, calc_time]){
+#     nnn = get_layer_date(nnn, metadata[,temporal_agg])
+#   }
+#   
+#   
+#   #classify into monthly
+#   mth = month(nnn)
+#   yr = year(nnn)
+#   mth_yr = paste0(yr,'_',sprintf("%02d", mth))
+#   synoptic = rep(1, length(mth))
+#   
+#   #load the raster
+#   for(city in listofcities){
+#     rasname = paste0(metadata[, paste(..city,product,version,variables,year_start,year_end,sep='_')],'.tif')
+#     ras = readAll(brick(file.path(out.dir,metadata[,prefix], 'latlong', rasname)))
+#     
+#     #get the data on the observed/raw(ish) information
+#     
+#     for(sg in 1:nrow(summary_grid)){
+#       newname = paste0(tools::file_path_sans_ext(basename(rasname)), '_', summary_grid[sg, time], '_',summary_grid[sg, funk], '.tif')
+#       newpath = file.path(out.dir, '/summary/',metadata[,product], summary_grid[sg, time], summary_grid[sg, funk], newname)
+#     }
+#   
+#   }
+# }
