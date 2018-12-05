@@ -4,7 +4,7 @@ library('data.table')
 overwrite = T
 
 #a list of all files in modis folder-- since I can't figure out how to get ee to save to sub folders
-files = drive_ls(path = 'modis', pattern = 'NIGHTTIME')
+files = drive_ls(path = 'modis', pattern = 'VCMCFG')
 
 #reorganize files into the following path
 #earth_engine/product_name/city
@@ -19,8 +19,8 @@ mods = mods[date_modified == mody,]
 
 #create some useful variables
 mods[, c('city'):=tstrsplit(name,split = '_', fixed = T, keep = c(1))]
-mods[, variable:= substr(name, nchar(paste(city,'NIGHTTIME_LIGHTS'))+2, nchar(name) - 9)]
-mods[, product_name := 'NIGHTTIME_LIGHTS']
+mods[, variable:= substr(name, nchar(paste(city,'VCMCFG'))+2, nchar(name) - 9)]
+mods[, product_name := 'VCMCFG']
 
 mods[,new_path:=paste0('/media/dan/earth_engine/',product_name,'/', city,'/')]
 

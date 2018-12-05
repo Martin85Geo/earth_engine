@@ -19,27 +19,50 @@ rasterOptions(maxmemory = 2e9, chunksize = 2e8)
 #create ndwi
 the_params = expand.grid(city = listofcities, spatial_agg = c(1,2), temporal_agg = c(8, 16, 30), stringsAsFactors = F)
 
+# 
+# cl = makeForkCluster(1)
+# registerDoParallel(cl)
+# 
+# over = 1:nrow(the_params)
+# foreach(x=over) %dopar% {
+#   
+#   print(x)
+#   
+#   #BEFORE RUNNING AGAIN CHECK NAMING CONVENTIONS (11/13/2018)
+#   
+#   param = the_params[x,]
+#   a = create_ndwi(param)
+#   a = create_ndvi(param)
+#   a = create_evi(param)
+#   a = create_tcb(param)
+#   a = create_tcw(param)
+#   
+#   
+# }
+# 
+# stopImplicitCluster()
+# stopCluster(cl)
 
-cl = makeForkCluster(1)
-registerDoParallel(cl)
 
-over = 1:nrow(the_params)
-foreach(x=over) %dopar% {
-  
-  print(x)
-  
-  param = the_params[x,]
-  a = create_ndwi(param)
-  a = create_ndvi(param)
-  a = create_evi(param)
-  a = create_tcb(param)
-  a = create_tcw(param)
-  
-  
+#move a bunch of things around
+for(iii in 1:nrow(the_params)){
+  for(var in c('ndwi_nirswi', 'ndvi','evi','tcb','tcw')){
+    old = file.path(ooot,paste0(var, '_', paste(the_params[iii,], collapse = "_"), '.tif'))
+    loc = the_params[iii, 'city']
+    extra = paste0(the_params[iii,2], '_', the_params[iii,3])
+    new = paste0('/media/dan/ee_processed/MCD43A4/latlong/', loc, '_', 'MCD43A4_', var, '_', extra, '_', 2001, '_' ,2016,'.tif')
+    
+    if(file.exists(old)){
+      file.copy(old, new)
+      file.remove(old)
+    }
+    newnew = paste0('/media/dan/ee_processed/MCD43A4/latlong/', loc, '_', 'MCD43A4_006_', var, '_', extra, '_', 2001, '_' ,2016,'.tif')
+
+    file.rename(new, newnew)
+    
+  }
 }
 
-stopImplicitCluster()
-stopCluster(cl)
 
 
 # 

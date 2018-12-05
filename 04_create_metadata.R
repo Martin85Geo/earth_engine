@@ -45,11 +45,18 @@ brdf_vars[, calc_time := T]
 viirs_vars = expand.grid(product = 'VCMCFG', version = '01', variables = 'avg_rad',
                                      year_start = 2012, year_end = 2016, sensor = 'VIIRS', prefix = 'VCMCFG', calc_time = F, stringsAsFactors = F)
 
-dat = viirs_vars
+strm_vars 
 
-setDT(dat)
-summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('mth_yr', 'mth', 'yr', 'synoptic'), stringsAsFactors = F) #'mth','yr',
-setDT(summary_grid)
+# 
+# setDT(dat)
+# summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('mth_yr', 'mth', 'yr', 'synoptic'), stringsAsFactors = F) #'mth','yr',
+# setDT(summary_grid)
+
+
+#create a master list of files
+rasfiles = rbindlist(list(lst_vars, vis_vars, brdf_bands, brdf_vars, viirs_vars))
+
+
 for(line in 1:nrow(dat)){
   
   metadata = dat[line,]
@@ -90,19 +97,11 @@ for(line in 1:nrow(dat)){
     rasname = paste0(metadata[, paste(..city,product,version,variables,year_start,year_end,sep='_')],'.tif')
     ras = readAll(brick(file.path(out.dir,metadata[,prefix], 'latlong', rasname)))
     
+    #get the data on the observed/raw(ish) information
+    
     for(sg in 1:nrow(summary_grid)){
-      
-      res = summarize_variable(ras,
-                               classification = get(summary_grid[sg, time]),
-                               summary_fun = get(summary_grid[sg, funk]),
-                               na.rm = T)
-      
-      #write result
       newname = paste0(tools::file_path_sans_ext(basename(rasname)), '_', summary_grid[sg, time], '_',summary_grid[sg, funk], '.tif')
       newpath = file.path(out.dir, '/summary/',metadata[,product], summary_grid[sg, time], summary_grid[sg, funk], newname)
-      dir.create(dirname(newpath), recursive = T)
-      writeRaster(res, filename = newpath, overwrite = T)
-      
     }
   
   }
