@@ -72,16 +72,20 @@ summary_grid = summary_grid[!(funk != "" & prefix == 'srtm'), ]
 summary_grid[funk != "", rasname := paste0(tools::file_path_sans_ext(basename(rasname)), '_', time, '_',funk, '.tif') ]
 summary_grid[funk != "", raspath:=  file.path(out.dir, '/summary/',product, time, funk, rasname)]
 
-meta_report = rbindlist(lapply(summary_grid[, raspath], metadata_report))
+saveRDS(summary_grid, paste0('/media/dan/summary_grid_',substr(as.character(Sys.time()), 1, 10), '.rds'))
+saveRDS(summary_grid, paste0('/media/dan/summary_grid.rds'))
 
-meta_report[, rasname := (basename(as.character(path)))]
-
-meta_report = merge(meta_report, summary_grid, by = 'rasname')
-
-meta_report = meta_report[, .(rasname, x, y, z, ncell, mis_cell, frac_mis, summary_function = funk, city, product, year_start, year_end, spatial_agg, temporal_agg)]
-
-saveRDS(meta_report, '/media/dan/meta_report.rds')
-write.csv(meta_report, '/media/dan/meta_report.csv', row.names = F)
+# 
+# meta_report = rbindlist(lapply(summary_grid[, raspath], metadata_report))
+# 
+# meta_report[, rasname := (basename(as.character(path)))]
+# 
+# meta_report = merge(meta_report, summary_grid, by = 'rasname')
+# 
+# meta_report = meta_report[, .(rasname, x, y, z, ncell, mis_cell, frac_mis, summary_function = funk, city, product, year_start, year_end, spatial_agg, temporal_agg)]
+# 
+# saveRDS(meta_report, '/media/dan/meta_report.rds')
+# write.csv(meta_report, '/media/dan/meta_report.csv', row.names = F)
 
 # 
 # 

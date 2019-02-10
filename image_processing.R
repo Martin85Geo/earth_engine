@@ -1,14 +1,17 @@
 #'A function to combine google earth outputs into a tif brick
 #'
-#' @param datafolder file path. Location of the tifs from GEE
-#' @param layerfolder file_path. Location of the .txt files specifying layer names from GEE
+#' @param image_folder file path. Location of the tifs from GEE
+#' @param layer_names_folder file_path. Location of the .txt files specifying layer names from GEE
 #' @param metadata data.table. Single row data table used to govern the processing of images
 #' @param qa_info numeric vector. List of values in the QA layer denoting a good pixel
 #' @param location_names character vector. List of ROIs/cities
 #' 
 #' @import data.table
 #' 
-stich_image = function(datafolder, layerfolder, metadata, qa_info = NULL, location_name =""){
+stich_image = function(image_folder, layer_names_folder, metadata, qa_info = NULL, location_name =""){
+  
+  datafolder = image_folder
+  layerfolder = layer_names_folder
   
   message(location_name)
   
