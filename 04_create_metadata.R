@@ -10,7 +10,7 @@ library('zoo')
 
 code.dir = '/home/dan/Documents/code/earth_engine/'
 layerfolder = '/media/dan/earth_engine/'
-out.dir = '/media/dan/ee_processed/'
+out.dir = '/media/dan/processed/'
 dir.create(out.dir)
 
 for(ddd in c('qa_functions.R', 'image_processing.R', '00_build_product_metadata.R', 'index_functions.R', 'summarize_functions.R',
@@ -51,15 +51,38 @@ srtm_vars = expand.grid(product = 'srtm', variables = c('aspect', 'roughness', '
 
 # 
 # setDT(dat)
-# summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('mth_yr', 'mth', 'yr', 'synoptic'), stringsAsFactors = F) #'mth','yr',
-# setDT(summary_grid)
-
 
 #create a master list of files
-rasfiles = rbindlist(list(lst_vars, vis_vars, brdf_bands, brdf_vars, viirs_vars), fill = T)
-rasfiles[, rasname:= paste0(paste(..city,product,version,variables,year_start,year_end,sep='_'),'.tif')]
-rasfiles[, raspath := file.path(out.dir,prefix, 'latlong', rasname)]
-# 
+rasfiles = rbindlist(list(lst_vars, vis_vars, brdf_bands, brdf_vars, viirs_vars, srtm_vars), fill = T)
+# rasfiles[, rasname:= paste0(paste(..city,product,version,variables,year_start,year_end,sep='_'),'.tif')]
+# rasfiles[, raspath := file.path(out.dir,prefix, 'latlong', rasname)]
+rasfiles[, id:= .I]
+
+summary_grid = expand.grid(funk = c('mean','median','min','max', ""), time = c('mth_yr', 'mth', 'yr', 'synoptic'), 
+                           id = unique(rasfiles[,id]), city = listofcities, stringsAsFactors = F) #'mth','yr',
+setDT(summary_grid)
+summary_grid[funk == "", time := ""]
+summary_grid = unique(summary_grid)
+
+summary_grid = merge(summary_grid, rasfiles, by = 'id')
+summary_grid[, rasname:= paste0(paste(city,product,version,variables,year_start,year_end,sep='_'),'.tif')]
+summary_grid[funk == "", raspath := file.path(out.dir,prefix, 'latlong', rasname)]
+
+summary_grid = summary_grid[!(funk != "" & prefix == 'srtm'), ]
+summary_grid[funk != "", rasname := paste0(tools::file_path_sans_ext(basename(rasname)), '_', time, '_',funk, '.tif') ]
+summary_grid[funk != "", raspath:=  file.path(out.dir, '/summary/',product, time, funk, rasname)]
+
+meta_report = rbindlist(lapply(summary_grid[, raspath], metadata_report))
+
+meta_report[, rasname := (basename(as.character(path)))]
+
+meta_report = merge(meta_report, summary_grid, by = 'rasname')
+
+meta_report = meta_report[, .(rasname, x, y, z, ncell, mis_cell, frac_mis, summary_function = funk, city, product, year_start, year_end, spatial_agg, temporal_agg)]
+
+saveRDS(meta_report, '/media/dan/meta_report.rds')
+write.csv(meta_report, '/media/dan/meta_report.csv', row.names = F)
+
 # 
 # 
 # for(line in 1:nrow(dat)){
