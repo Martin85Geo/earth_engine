@@ -76,16 +76,16 @@ saveRDS(summary_grid, paste0('/media/dan/summary_grid_',substr(as.character(Sys.
 saveRDS(summary_grid, paste0('/media/dan/summary_grid.rds'))
 
 # 
-# meta_report = rbindlist(lapply(summary_grid[, raspath], metadata_report))
-# 
-# meta_report[, rasname := (basename(as.character(path)))]
-# 
-# meta_report = merge(meta_report, summary_grid, by = 'rasname')
-# 
-# meta_report = meta_report[, .(rasname, x, y, z, ncell, mis_cell, frac_mis, summary_function = funk, city, product, year_start, year_end, spatial_agg, temporal_agg)]
-# 
-# saveRDS(meta_report, '/media/dan/meta_report.rds')
-# write.csv(meta_report, '/media/dan/meta_report.csv', row.names = F)
+meta_report = rbindlist(mclapply(summary_grid[, raspath], metadata_report, mc.cores = 4))
+
+meta_report[, rasname := (basename(as.character(path)))]
+
+meta_report = merge(meta_report, summary_grid, by = 'rasname')
+
+meta_report = meta_report[, .(rasname, x, y, z, ncell, mis_cell, frac_mis, summary_function = funk, city, product, year_start, year_end, spatial_agg, temporal_agg)]
+
+saveRDS(meta_report, '/media/dan/meta_report.rds')
+write.csv(meta_report, '/media/dan/meta_report.csv', row.names = F)
 
 # 
 # 
