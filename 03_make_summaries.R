@@ -10,8 +10,15 @@ library('zoo')
 
 code.dir = '/home/dan/Documents/code/earth_engine/'
 layerfolder = '/media/dan/earth_engine/'
-out.dir = '/media/dan/ee_processed/'
+out.dir = '/media/dan/processed/'
 dir.create(out.dir)
+
+rainy = fread('/media/dan/rainy_seasons.csv')
+rainy = melt(rainy, id.vars = 'city', variable.factor = F)
+rainy[, month_abb := tolower(variable)]
+mth_num = data.table(month_abb = tolower(month.abb), month_num = 1:12 )
+rainy = merge(rainy, mth_num, by = 'month_abb')
+setnames(rainy, 'city', 'city_name')
 
 for(ddd in c('qa_functions.R', 'image_processing.R', '00_build_product_metadata.R', 'index_functions.R', 'summarize_functions.R')) source(paste0(code.dir,ddd))
 city_shape = st_read("/home/dan/Documents/react_data/Cities_React/study_areas.shp")
@@ -45,10 +52,12 @@ brdf_vars[, calc_time := T]
 viirs_vars = expand.grid(product = 'VCMCFG', version = '01', variables = 'avg_rad',
                                      year_start = 2012, year_end = 2016, sensor = 'VIIRS', prefix = 'VCMCFG', calc_time = F, stringsAsFactors = F)
 
-dat = viirs_vars
+dat = rbind(vis_vars,lst_vars, brdf_bands, fill = T)
+dat[, calc_time := F]
+dat= rbind(dat, brdf_vars[, calc_time := T], fill = T)
 
 setDT(dat)
-summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('mth_yr', 'mth', 'yr', 'synoptic'), stringsAsFactors = F) #'mth','yr',
+summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('rainydry'), stringsAsFactors = F) #'mth','yr', c('mth_yr', 'mth', 'yr', 'synoptic')
 setDT(summary_grid)
 for(line in 1:nrow(dat)){
   
@@ -62,7 +71,6 @@ for(line in 1:nrow(dat)){
     namepath = file.path(layerfolder, 'NOAA_VIIRS_DNB_MONTHLY_V1_VCMCFG.txt')
   }else{
     namepath = file.path(layerfolder, paste0(sss,ifelse(nchar(metadata[,version])>0, paste0('_',metadata[,version],'_'), "_"), metadata[,product],'.txt'))
-    
   }
   
   nnn = read.delim(namepath, header = F, stringsAsFactors = F)[,1]
@@ -89,6 +97,10 @@ for(line in 1:nrow(dat)){
   for(city in listofcities){
     rasname = paste0(metadata[, paste(..city,product,version,variables,year_start,year_end,sep='_')],'.tif')
     ras = readAll(brick(file.path(out.dir,metadata[,prefix], 'latlong', rasname)))
+    
+    rainydry = as.numeric(mth %in% rainy[city_name == city & value == 'Wet', month_num])
+    
+    stopifnot(between(sum(rainydry)/length(rainydry),0,1,F))
     
     for(sg in 1:nrow(summary_grid)){
       
