@@ -58,7 +58,7 @@ rasfiles = rbindlist(list(lst_vars, vis_vars, brdf_bands, brdf_vars, viirs_vars,
 # rasfiles[, raspath := file.path(out.dir,prefix, 'latlong', rasname)]
 rasfiles[, id:= .I]
 
-summary_grid = expand.grid(funk = c('mean','median','min','max', ""), time = c('mth_yr', 'mth', 'yr', 'synoptic'), 
+summary_grid = expand.grid(funk = c('mean','median','min','max', ""), time = c('mth_yr', 'mth', 'yr', 'synoptic', 'rainydry'), 
                            id = unique(rasfiles[,id]), city = listofcities, stringsAsFactors = F) #'mth','yr',
 setDT(summary_grid)
 summary_grid[funk == "", time := ""]

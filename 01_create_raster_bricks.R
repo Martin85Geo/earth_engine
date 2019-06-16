@@ -65,7 +65,8 @@ process_product = function(dat, out.dir, over, qa_funk){
 #make brdf stuff
 cl = makeForkCluster(2)
 registerDoParallel(cl)
-process_product(lst[product == 'MOD11A2',], out.dir, over = listofcities, build_lst_qa)
+process_product(reflect, out.dir, over = listofcities, build_lst_qa)
+#process_product(lst[product == 'MOD11A2',], out.dir, over = listofcities, build_lst_qa)
 #process_product(brdf, 'MCD43A4', out.dir, over = listofcities, build_albedo_qa)
 #process_product(lst[product=='MYD11A2',], 'MYD11A2', out.dir, over = listofcities, build_lst_qa)
 
