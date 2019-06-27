@@ -57,7 +57,7 @@ dat[, calc_time := F]
 dat= rbind(dat, brdf_vars[, calc_time := T], fill = T)
 
 setDT(dat)
-summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('rainydry'), stringsAsFactors = F) #'mth','yr', c('mth_yr', 'mth', 'yr', 'synoptic')
+summary_grid = expand.grid(funk = c('mean','median','min','max'), time = c('y_rd'), stringsAsFactors = F) #'mth','yr', c('mth_yr', 'mth', 'yr', 'synoptic', 'rainydry')
 setDT(summary_grid)
 for(line in 1:nrow(dat)){
   
@@ -99,6 +99,8 @@ for(line in 1:nrow(dat)){
     ras = readAll(brick(file.path(out.dir,metadata[,prefix], 'latlong', rasname)))
     
     rainydry = as.numeric(mth %in% rainy[city_name == city & value == 'Wet', month_num])
+    
+    y_rd = paste0(yr, '_', rainydry)
     
     stopifnot(between(sum(rainydry)/length(rainydry),0,1,F))
     
